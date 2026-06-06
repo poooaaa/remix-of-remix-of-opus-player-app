@@ -13,21 +13,9 @@ function createSupabaseClient() {
       ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
       ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY'] : []),
     ];
-    const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Standard local & browser-storage fallback active.`;
-    console.warn(`[Supabase Soft Target] ${message}`);
-    
-    // Return dummy client structures to prevent crashes on startup/import
-    return createClient<Database>(
-      "https://dummy-project.supabase.co", 
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy", 
-      {
-        auth: {
-          storage: typeof window !== 'undefined' ? localStorage : undefined,
-          persistSession: false,
-          autoRefreshToken: false,
-        }
-      }
-    );
+    const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Connect Supabase in Lovable Cloud.`;
+    console.error(`[Supabase] ${message}`);
+    throw new Error(message);
   }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
