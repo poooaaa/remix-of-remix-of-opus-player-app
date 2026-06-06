@@ -17,9 +17,9 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Fetch popular songs from Apple Music RSS
+    // Fetch popular songs from Apple Music RSS (fetch 50 to allow dedup, slice to 36)
     const res = await fetch(
-      "https://rss.applemarketingtools.com/api/v2/id/music/most-played/25/songs.json",
+      "https://rss.applemarketingtools.com/api/v2/id/music/most-played/50/songs.json",
       {
         headers: {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -28,12 +28,23 @@ Deno.serve(async (req) => {
       }
     );
     const rssData = await res.json();
-    const results = rssData?.feed?.results;
-    if (!results || !Array.isArray(results)) {
+    const rawResults = rssData?.feed?.results;
+    if (!rawResults || !Array.isArray(rawResults)) {
       return new Response(JSON.stringify({ error: "No results from RSS" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Dedupe by url and take top 36
+    const seen = new Set<string>();
+    const results = [] as any[];
+    for (const item of rawResults) {
+      const key = item?.url || `${item?.artistName}-${item?.name}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      results.push(item);
+      if (results.length >= 36) break;
     }
 
     // Fetch duration for each song from iTunes

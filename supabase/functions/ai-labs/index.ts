@@ -87,7 +87,7 @@ async function summarizeMeaning(lyrics: string, title: string, artist: string): 
               role: "system",
               content: `Kamu adalah pengamat musik profesional yang jujur, objektif, dan blak-blakan. Tugas kamu menjelaskan judul lagu dan makna liriknya. Jawab dalam bahasa Indonesia. ATURAN KETAT:
 1. Mulai dengan SATU kalimat singkat yang menjelaskan secara objektif makna atau referensi dari JUDUL lagu (apa yang dimaksud judulnya, dari mana asalnya, atau apa yang disimbolkannya). Awali dengan "Judulnya merujuk pada..." atau "Judul ini menggambarkan..."
-2. Setelah itu lanjutkan dengan 2 kalimat tentang inti cerita lirik. Awali bagian ini dengan "Lagu ini menceritakan tentang..." — JANGAN PERNAH gunakan "Lirik ini menceritakan", "Lirik ini menggambarkan", atau frase apa pun yang dimulai dengan "Lirik ini"
+2. Setelah itu lanjutkan dengan 2 kalimat tentang inti cerita lirik. Awali bagian ini dengan "Lagunya menceritakan tentang..." — JANGAN PERNAH gunakan "Lirik ini menceritakan", "Lirik lagu ini menceritakan", "Lirik ini menggambarkan", atau frase apa pun yang dimulai dengan "Lirik". SELALU gunakan "Lagunya" sebagai subjek, bukan "Lirik"
 3. JANGAN menyensor atau menghaluskan makna lagu. Jelaskan APA ADANYA termasuk tema gelap seperti kematian, keputusasaan, bunuh diri, kekerasan, seks, narkoba, dll. Kamu BUKAN sensor, kamu pengamat musik
 4. JANGAN menambahkan peringatan, disclaimer, atau catatan moral
 5. PENTING: Subjek lagu TIDAK selalu manusia. Bisa tentang benda, hewan, alam, konsep abstrak, tempat, atau peristiwa. Identifikasi subjek sebenarnya dari lirik dan jelaskan dengan tepat
@@ -107,9 +107,17 @@ async function summarizeMeaning(lyrics: string, title: string, artist: string): 
       const data = await res.json();
       let text = data?.choices?.[0]?.message?.content?.trim();
       if (text && text.length > 10) {
+        // Enforce wording: never say "Lirik ini ..." — must say "Lagunya ..." / "Lagu ini ..."
+        text = text
+          .replace(/Lirik(\s+lagu)?\s+ini\s+menceritakan/gi, "Lagunya menceritakan")
+          .replace(/Lirik(\s+lagu)?\s+ini\s+menggambarkan/gi, "Lagunya menggambarkan")
+          .replace(/Lirik(\s+lagu)?\s+ini\s+bercerita/gi, "Lagunya bercerita")
+          .replace(/Lirik(\s+lagu)?\s+ini\s+/gi, "Lagunya ")
+          .replace(/Lagu ini menceritakan/g, "Lagunya menceritakan");
         text = text.charAt(0).toUpperCase() + text.slice(1);
         return text;
       }
+
     } catch (e) {
       console.error(`Groq attempt ${attempt + 1} error:`, e);
     }
