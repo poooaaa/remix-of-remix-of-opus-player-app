@@ -107,9 +107,17 @@ async function summarizeMeaning(lyrics: string, title: string, artist: string): 
       const data = await res.json();
       let text = data?.choices?.[0]?.message?.content?.trim();
       if (text && text.length > 10) {
+        // Enforce wording: never say "Lirik ini ..." — must say "Lagunya ..." / "Lagu ini ..."
+        text = text
+          .replace(/Lirik(\s+lagu)?\s+ini\s+menceritakan/gi, "Lagunya menceritakan")
+          .replace(/Lirik(\s+lagu)?\s+ini\s+menggambarkan/gi, "Lagunya menggambarkan")
+          .replace(/Lirik(\s+lagu)?\s+ini\s+bercerita/gi, "Lagunya bercerita")
+          .replace(/Lirik(\s+lagu)?\s+ini\s+/gi, "Lagunya ")
+          .replace(/Lagu ini menceritakan/g, "Lagunya menceritakan");
         text = text.charAt(0).toUpperCase() + text.slice(1);
         return text;
       }
+
     } catch (e) {
       console.error(`Groq attempt ${attempt + 1} error:`, e);
     }
