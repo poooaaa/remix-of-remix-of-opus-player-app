@@ -309,6 +309,13 @@ const LyricsSheet = ({ lyrics, isVisible, onClose, trackTitle, trackArtist, audi
       }
     }
 
+    // Fallback: if alignment produced very few timings, use LRCLIB lines directly so sync still works
+    const timedCount = alignedLines.filter((l) => l.time !== undefined).length;
+    const lrclibTimedCount = lrclibLines.filter((l) => l.time !== undefined).length;
+    if (lrclibTimedCount > 0 && timedCount < Math.min(3, lrclibTimedCount)) {
+      return lrclibLines;
+    }
+
     return alignedLines;
   }, [lyrics, lrclibLines]);
 
