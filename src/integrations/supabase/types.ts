@@ -14,7 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      app_config: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
+      popular_songs: {
+        Row: {
+          artist: string | null
+          created_at: string
+          duration_ms: number | null
+          id: string
+          position: number
+          source: string | null
+          thumbnail: string | null
+          title: string
+          track_url: string | null
+        }
+        Insert: {
+          artist?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          id?: string
+          position: number
+          source?: string | null
+          thumbnail?: string | null
+          title: string
+          track_url?: string | null
+        }
+        Update: {
+          artist?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          id?: string
+          position?: number
+          source?: string | null
+          thumbnail?: string | null
+          title?: string
+          track_url?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
