@@ -458,7 +458,7 @@ const LyricsSheet = ({ lyrics, isVisible, onClose, trackTitle, trackArtist, audi
                   {finalLines.map((line, idx) => {
                     if (line.isSpacer || !line.text.trim()) {
                       return (
-                        <div key={idx} aria-hidden p-0 m-0>
+                        <div key={idx} aria-hidden className="p-0 m-0">
                           <span className="invisible">&nbsp;</span>
                         </div>
                       );
