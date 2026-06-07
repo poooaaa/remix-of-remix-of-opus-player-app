@@ -46,6 +46,7 @@ const YouTubeCard = ({ video, onPlayStart, stopSignal }: YouTubeCardProps) => {
 
   const handleClick = useCallback(async () => {
     if (isPlaying || isLoading) return;
+    // Hard limit: skip videos longer than 10 minutes — don't even hit resolve endpoint.
     const parts = (video.duration || "").split(":").map(Number);
     let secs = 0;
     if (parts.length === 3) secs = parts[0] * 3600 + parts[1] * 60 + parts[2];
@@ -53,46 +54,21 @@ const YouTubeCard = ({ video, onPlayStart, stopSignal }: YouTubeCardProps) => {
     if (secs > 600) return;
     setIsLoading(true);
     try {
-      let url: string | null = null;
-      if (secs > 300) {
-        // Long videos: async job queue via youtube-mp4
-        const { data, error } = await supabase.functions.invoke("youtube-mp4", { body: { url: video.url } });
-        if (error) throw error;
-        if ((data as any)?.previewUrl) {
-          url = (data as any).previewUrl;
-        } else if ((data as any)?.jobId) {
-          const jobId = (data as any).jobId;
-          // Poll up to ~5 minutes
-          for (let i = 0; i < 100; i++) {
-            await new Promise((r) => setTimeout(r, 3000));
-            const { data: status } = await supabase.functions.invoke("youtube-mp4", { body: { jobId } });
-            if ((status as any)?.status === "completed" && (status as any)?.preview_url) {
-              url = (status as any).preview_url;
-              break;
-            }
-            if ((status as any)?.status === "failed") {
-              throw new Error((status as any)?.error || "Job failed");
-            }
-          }
-          if (!url) throw new Error("Job timed out");
-        }
-      } else {
-        const { data, error } = await supabase.functions.invoke("resolve-video", { body: { url: video.url } });
-        if (error) throw error;
-        url = (data as any)?.previewUrl;
-      }
+      const { data, error } = await supabase.functions.invoke("resolve-video", {
+        body: { url: video.url },
+      });
+      if (error) throw error;
+      const url = (data as any)?.previewUrl;
       if (!url) throw new Error("No preview URL");
       setVideoUrl(url);
       onPlayStartRef.current?.();
       setIsPlaying(true);
     } catch (e) {
-      console.error("resolve error:", e);
+      console.error("resolve-video error:", e);
     } finally {
       setIsLoading(false);
     }
   }, [isPlaying, isLoading, video.url, video.duration]);
-
-
 
   return (
     <div className="w-full animate-fade-in-up">

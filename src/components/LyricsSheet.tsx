@@ -245,51 +245,83 @@ const LyricsSheet = ({ lyrics, isVisible, onClose, trackTitle, trackArtist, audi
     return idCount > words.length * 0.08 ? "en" : "id";
   };
 
-  // Normalize string for comparison by removing casing, smart quotes, music symbols, the specified punctuation, and spaces
+  // Normalize string for comparison by removing casing, smart quotes, the specified punctuation, and spaces
   const normalizeLine = (str: string): string => {
     return str
       .toLowerCase()
-      .replace(/[♪♫♬♩🎵🎶]/g, "") // strip music note symbols
       .replace(/[.,'"`?!_()[\]{}“”‘’~\\-]/g, "") // ignore dot, comma, quotes, brackets, hyphens
       .replace(/\s+/g, "") // remove all spacing for comparison robustness
       .trim();
   };
 
-  // Display text from Opus (original system). LRCLIB is used only for timestamps + source label.
-  // Music symbols like ♪ are stripped during matching so they don't break alignment.
+  // Determine line-by-line structure from Opus lyrics, and assign times from LRCLIB where lines match
   const finalLines = useMemo(() => {
-    if (!lyrics) return lrclibLines || [];
-    const opusLines = parsePlainLyrics(lyrics);
-    if (!lrclibLines || lrclibLines.length === 0) return opusLines;
+    // If we don't have Opus lyrics, fallback to LRCLIB lines
+    if (!lyrics) {
+      return lrclibLines || [];
+    }
 
-    const aligned: SyncLine[] = [];
+    // 1. Parse Opus lyrics to plain lines preserving spacer lines
+    const opusLines = parsePlainLyrics(lyrics);
+
+    // 2. If we don't have synced lrclibLines with timestamps, just return the opusLines without timing
+    if (!lrclibLines || lrclibLines.length === 0) {
+      return opusLines;
+    }
+
+    // 3. Align opusLines with lrclibLines line-by-line using a chronological search pointer
+    const alignedLines: SyncLine[] = [];
     let lrclibIdx = 0;
+
     for (let i = 0; i < opusLines.length; i++) {
       const oLine = opusLines[i];
-      if (oLine.isSpacer || !oLine.text.trim()) { aligned.push({ ...oLine }); continue; }
-      const oNorm = normalizeLine(oLine.text);
-      if (!oNorm) { aligned.push({ text: "", isSpacer: true }); continue; }
-      let matched = false;
+      if (oLine.isSpacer || !oLine.text.trim()) {
+        alignedLines.push({ ...oLine }); // Keep empty spacer line with no timestamp
+        continue;
+      }
+
+      const oTextNorm = normalizeLine(oLine.text);
+      let foundMatch = false;
+
+      // Search forward in lrclibLines from current pointer for a matching non-empty line (up to 25 lines ahead)
       for (let j = lrclibIdx; j < Math.min(lrclibLines.length, lrclibIdx + 25); j++) {
         const lLine = lrclibLines[j];
         if (lLine.isSpacer || !lLine.text.trim()) continue;
-        const lNorm = normalizeLine(lLine.text);
-        if (!lNorm) continue;
-        if (lNorm === oNorm) {
-          aligned.push({ text: oLine.text, time: lLine.time });
-          lrclibIdx = j + 1;
-          matched = true;
+
+        const lTextNorm = normalizeLine(lLine.text);
+        if (lTextNorm === oTextNorm) {
+          alignedLines.push({
+            text: oLine.text,
+            time: lLine.time, // Map LRCLIB timing to the Opus line
+          });
+          lrclibIdx = j + 1; // Advance searching pointer linearly
+          foundMatch = true;
           break;
         }
       }
-      if (!matched) aligned.push({ text: oLine.text });
+
+      if (!foundMatch) {
+        // No match found - keep Opus text, do not assign a timing
+        // This will result in the active-highlighter pausing at the previous line
+        alignedLines.push({
+          text: oLine.text,
+        });
+      }
     }
-    return aligned;
+
+    // Fallback: if alignment produced very few timings, use LRCLIB lines directly so sync still works
+    const timedCount = alignedLines.filter((l) => l.time !== undefined).length;
+    const lrclibTimedCount = lrclibLines.filter((l) => l.time !== undefined).length;
+    if (lrclibTimedCount > 0 && timedCount < Math.min(3, lrclibTimedCount)) {
+      return lrclibLines;
+    }
+
+    return alignedLines;
   }, [lyrics, lrclibLines]);
 
-  const finalPlainLyrics = useMemo(() => lyrics || lrclibLyrics || "", [lyrics, lrclibLyrics]);
-
-
+  const finalPlainLyrics = useMemo(() => {
+    return lyrics || lrclibLyrics || "";
+  }, [lyrics, lrclibLyrics]);
 
   const hasSyncTimings = useMemo(() => {
     return finalLines.some((l) => l.time !== undefined);
