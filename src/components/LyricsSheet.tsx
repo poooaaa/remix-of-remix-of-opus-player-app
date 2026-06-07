@@ -255,26 +255,40 @@ const LyricsSheet = ({ lyrics, isVisible, onClose, trackTitle, trackArtist, audi
       .trim();
   };
 
-  // Always prefer LRCLIB as the lyric source. Fallback to incoming `lyrics` prop only when LRCLIB is unavailable.
-  // Lines consisting only of music symbols are treated as spacers so sync isn't affected by them.
+  // Display text from Opus (original system). LRCLIB is used only for timestamps + source label.
+  // Music symbols like ♪ are stripped during matching so they don't break alignment.
   const finalLines = useMemo(() => {
-    const sanitize = (lines: SyncLine[]) =>
-      lines.map((l) => {
-        if (l.isSpacer) return l;
-        const stripped = (l.text || "").replace(/[♪♫♬♩🎵🎶]/g, "").trim();
-        if (!stripped) return { text: "", isSpacer: true, time: l.time };
-        return l;
-      });
+    if (!lyrics) return lrclibLines || [];
+    const opusLines = parsePlainLyrics(lyrics);
+    if (!lrclibLines || lrclibLines.length === 0) return opusLines;
 
-    if (lrclibLines && lrclibLines.length > 0) return sanitize(lrclibLines);
-    if (lyrics) return sanitize(parsePlainLyrics(lyrics));
-    return [];
+    const aligned: SyncLine[] = [];
+    let lrclibIdx = 0;
+    for (let i = 0; i < opusLines.length; i++) {
+      const oLine = opusLines[i];
+      if (oLine.isSpacer || !oLine.text.trim()) { aligned.push({ ...oLine }); continue; }
+      const oNorm = normalizeLine(oLine.text);
+      if (!oNorm) { aligned.push({ text: "", isSpacer: true }); continue; }
+      let matched = false;
+      for (let j = lrclibIdx; j < Math.min(lrclibLines.length, lrclibIdx + 25); j++) {
+        const lLine = lrclibLines[j];
+        if (lLine.isSpacer || !lLine.text.trim()) continue;
+        const lNorm = normalizeLine(lLine.text);
+        if (!lNorm) continue;
+        if (lNorm === oNorm) {
+          aligned.push({ text: oLine.text, time: lLine.time });
+          lrclibIdx = j + 1;
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) aligned.push({ text: oLine.text });
+    }
+    return aligned;
   }, [lyrics, lrclibLines]);
 
+  const finalPlainLyrics = useMemo(() => lyrics || lrclibLyrics || "", [lyrics, lrclibLyrics]);
 
-  const finalPlainLyrics = useMemo(() => {
-    return lrclibLyrics || lyrics || "";
-  }, [lyrics, lrclibLyrics]);
 
 
   const hasSyncTimings = useMemo(() => {
