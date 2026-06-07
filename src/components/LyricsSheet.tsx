@@ -510,7 +510,7 @@ const LyricsSheet = ({ lyrics, isVisible, onClose, trackTitle, trackArtist, audi
               <div className="mt-8 mb-4 pt-4 border-t border-border/30 flex items-start justify-between">
                 <div>
                   <p className="text-[10px] text-muted-foreground/60 font-medium">
-                    Sumber lirik: {lrclibLines && lrclibLines.length > 0 ? "LRCLIB" : "Opus"}
+                    Sumber lirik: LRCLIB
                   </p>
                   <p className="text-[9px] text-muted-foreground/30 mt-0.5">Lirik mungkin tidak 100% akurat</p>
                 </div>
