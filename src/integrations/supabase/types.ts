@@ -32,6 +32,27 @@ export type Database = {
         }
         Relationships: []
       }
+      cached_videos: {
+        Row: {
+          created_at: string
+          id: string
+          storage_path: string
+          video_url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          storage_path: string
+          video_url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          storage_path?: string
+          video_url?: string
+        }
+        Relationships: []
+      }
       popular_songs: {
         Row: {
           artist: string | null
@@ -65,6 +86,39 @@ export type Database = {
           thumbnail?: string | null
           title?: string
           track_url?: string | null
+        }
+        Relationships: []
+      }
+      video_jobs: {
+        Row: {
+          created_at: string
+          error: string | null
+          id: string
+          preview_url: string | null
+          status: string
+          storage_path: string | null
+          updated_at: string
+          video_url: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          preview_url?: string | null
+          status?: string
+          storage_path?: string | null
+          updated_at?: string
+          video_url: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          preview_url?: string | null
+          status?: string
+          storage_path?: string | null
+          updated_at?: string
+          video_url?: string
         }
         Relationships: []
       }
