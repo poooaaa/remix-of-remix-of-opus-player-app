@@ -54,7 +54,10 @@ const YouTubeCard = ({ video, onPlayStart, stopSignal }: YouTubeCardProps) => {
     if (secs > 600) return;
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("resolve-video", {
+      // Videos > 5 minutes use the y2mp3 system + Lovable Cloud cache.
+      // Videos <= 5 minutes use the original AI Studio resolver.
+      const fnName = secs > 300 ? "youtube-mp4" : "resolve-video";
+      const { data, error } = await supabase.functions.invoke(fnName, {
         body: { url: video.url },
       });
       if (error) throw error;
@@ -64,11 +67,12 @@ const YouTubeCard = ({ video, onPlayStart, stopSignal }: YouTubeCardProps) => {
       onPlayStartRef.current?.();
       setIsPlaying(true);
     } catch (e) {
-      console.error("resolve-video error:", e);
+      console.error("resolve error:", e);
     } finally {
       setIsLoading(false);
     }
   }, [isPlaying, isLoading, video.url, video.duration]);
+
 
   return (
     <div className="w-full animate-fade-in-up">

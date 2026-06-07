@@ -32,6 +32,27 @@ export type Database = {
         }
         Relationships: []
       }
+      cached_videos: {
+        Row: {
+          created_at: string
+          id: string
+          storage_path: string
+          video_url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          storage_path: string
+          video_url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          storage_path?: string
+          video_url?: string
+        }
+        Relationships: []
+      }
       popular_songs: {
         Row: {
           artist: string | null
