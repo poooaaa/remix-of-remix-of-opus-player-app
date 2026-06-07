@@ -124,8 +124,12 @@ const LyricsSheet = ({ lyrics, isVisible, onClose, trackTitle, trackArtist, audi
           `https://lrclib.net/api/search?track_name=${encodeURIComponent(trackTitle)}&artist_name=${encodeURIComponent(trackArtist || "")}`
         );
         const data = await res.json();
+        // Prefer a result that actually has synced (timestamped) lyrics so the
+        // sync button lights up; only fall back to plain lyrics if none exist.
         const hit = Array.isArray(data)
-          ? data.find((d: any) => d?.syncedLyrics || d?.plainLyrics) || data[0]
+          ? data.find((d: any) => d?.syncedLyrics) ||
+            data.find((d: any) => d?.plainLyrics) ||
+            data[0]
           : null;
 
         if (hit) {
