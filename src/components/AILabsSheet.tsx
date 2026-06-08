@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Languages, Loader2, Settings, Copy, Check } from "lucide-react";
+import { Languages, Loader2, Settings, Copy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import SpinnerLogo from "@/components/SpinnerLogo";
 
