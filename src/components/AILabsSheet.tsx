@@ -185,8 +185,6 @@ const AILabsSheet = ({ isVisible, onClose, summary, artistImage, artistName, art
       try { document.execCommand("copy"); } catch {}
       document.body.removeChild(ta);
     }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   if (!isVisible) return null;
