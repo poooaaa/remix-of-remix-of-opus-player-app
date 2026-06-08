@@ -31,7 +31,7 @@ const AILabsSheet = ({ isVisible, onClose, summary, artistImage, artistName, art
   const [summarizedText, setSummarizedText] = useState<string | null>(null);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [showSummarized, setShowSummarized] = useState(false);
-  const [copied, setCopied] = useState(false);
+  
   const startY = useRef(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
