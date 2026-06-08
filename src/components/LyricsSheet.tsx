@@ -113,7 +113,7 @@ const LyricsSheet = ({ lyrics, isVisible, onClose, trackTitle, trackArtist, audi
     setCurrentLineIdx(-1);
     setTranslateLabel(null);
     setIsSwitchingLabel(false);
-    setCopied(false);
+    
 
     if (!isVisible || !trackTitle) return;
 
