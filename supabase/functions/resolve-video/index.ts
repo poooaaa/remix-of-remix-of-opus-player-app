@@ -72,6 +72,18 @@ Deno.serve(async (req) => {
       );
     }
 
+    // 401/403 = cookie ditolak upstream (tidak selalu redirect/HTML)
+    if (res.status === 401 || res.status === 403) {
+      return json(
+        {
+          error:
+            "AIS_COOKIE kadaluwarsa atau tidak valid. Silakan perbarui cookie dari Google AI Studio.",
+          code: "COOKIE_EXPIRED",
+        },
+        401,
+      );
+    }
+
     const contentType = res.headers.get("content-type") || "";
     const text = await res.text();
 
