@@ -306,7 +306,7 @@ const Index = () => {
           : bestApple 
             ? bestApple.title.replace(/^.+\s-\s/, "")
             : rawQuery;
-        const ytQuery = `${ytArtist} ${ytTitle} official music`.trim();
+        const ytQuery = `lagu ${ytTitle} by ${ytArtist} official music video`.trim();
         supabase.functions.invoke("youtube-proxy", {
           body: { action: "search", query: ytQuery },
         }).then(({ data }: any) => {
