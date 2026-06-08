@@ -83,7 +83,7 @@ const LyricsSheet = ({ lyrics, isVisible, onClose, trackTitle, trackArtist, audi
   const [showTranslated, setShowTranslated] = useState(false);
   const [translateLabel, setTranslateLabel] = useState<null | "Id" | "En">(null);
   const [isSwitchingLabel, setIsSwitchingLabel] = useState(false);
-  const [copied, setCopied] = useState(false);
+  
 
   // Artist info state
   const [artistImage, setArtistImage] = useState<string | null>(null);
@@ -113,7 +113,7 @@ const LyricsSheet = ({ lyrics, isVisible, onClose, trackTitle, trackArtist, audi
     setCurrentLineIdx(-1);
     setTranslateLabel(null);
     setIsSwitchingLabel(false);
-    setCopied(false);
+    
 
     if (!isVisible || !trackTitle) return;
 
@@ -384,8 +384,6 @@ const LyricsSheet = ({ lyrics, isVisible, onClose, trackTitle, trackArtist, audi
       try { document.execCommand("copy"); } catch {}
       document.body.removeChild(ta);
     }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleSync = () => {
@@ -519,7 +517,7 @@ const LyricsSheet = ({ lyrics, isVisible, onClose, trackTitle, trackArtist, audi
                     onClick={handleCopy}
                     className="flex items-center justify-center w-8 h-8 rounded-lg bg-foreground/5 backdrop-blur-md border border-foreground/10 text-muted-foreground opacity-60 transition-colors"
                   >
-                    {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    <Copy className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={handleSync}

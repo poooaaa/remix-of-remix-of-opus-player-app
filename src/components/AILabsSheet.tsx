@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Languages, Loader2, Settings, Copy, Check } from "lucide-react";
+import { Languages, Loader2, Settings, Copy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import SpinnerLogo from "@/components/SpinnerLogo";
 
@@ -31,7 +31,7 @@ const AILabsSheet = ({ isVisible, onClose, summary, artistImage, artistName, art
   const [summarizedText, setSummarizedText] = useState<string | null>(null);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [showSummarized, setShowSummarized] = useState(false);
-  const [copied, setCopied] = useState(false);
+  
   const startY = useRef(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -42,10 +42,6 @@ const AILabsSheet = ({ isVisible, onClose, summary, artistImage, artistName, art
     setShowSummarized(false);
     setTranslateLabel(null);
     setIsSwitchingLabel(false);
-  }, [summary]);
-
-  useEffect(() => {
-    setCopied(false);
   }, [summary]);
 
   const handleDragStart = useCallback((clientY: number) => {
@@ -189,8 +185,6 @@ const AILabsSheet = ({ isVisible, onClose, summary, artistImage, artistName, art
       try { document.execCommand("copy"); } catch {}
       document.body.removeChild(ta);
     }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   if (!isVisible) return null;
@@ -282,7 +276,7 @@ const AILabsSheet = ({ isVisible, onClose, summary, artistImage, artistName, art
                       onClick={handleCopy}
                       className="flex items-center justify-center w-8 h-8 rounded-lg bg-foreground/5 backdrop-blur-md border border-foreground/10 text-muted-foreground/60 transition-colors"
                     >
-                      {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      <Copy className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={handleTranslate}
