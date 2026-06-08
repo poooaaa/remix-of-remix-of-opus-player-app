@@ -82,7 +82,18 @@ async function ytdown(url: string): Promise<any> {
     },
     body,
   });
-  return await res.json();
+  const text = await res.text();
+  if (text.trim().startsWith("<")) {
+    // Cloudflare bot-challenge / HTML page instead of JSON
+    throw new Error(
+      "Penyedia unduhan (ytdown.to) memblokir permintaan dari server (proteksi Cloudflare). Coba lagi nanti.",
+    );
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error("Respon penyedia unduhan tidak valid.");
+  }
 }
 
 // Resolve the real downloadable file URL from the ytdown proxy media URL
