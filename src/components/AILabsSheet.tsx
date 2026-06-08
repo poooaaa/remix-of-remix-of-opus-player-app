@@ -44,10 +44,6 @@ const AILabsSheet = ({ isVisible, onClose, summary, artistImage, artistName, art
     setIsSwitchingLabel(false);
   }, [summary]);
 
-  useEffect(() => {
-    setCopied(false);
-  }, [summary]);
-
   const handleDragStart = useCallback((clientY: number) => {
     setIsDragging(true);
     startY.current = clientY;
