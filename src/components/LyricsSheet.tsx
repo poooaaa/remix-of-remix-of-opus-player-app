@@ -83,7 +83,7 @@ const LyricsSheet = ({ lyrics, isVisible, onClose, trackTitle, trackArtist, audi
   const [showTranslated, setShowTranslated] = useState(false);
   const [translateLabel, setTranslateLabel] = useState<null | "Id" | "En">(null);
   const [isSwitchingLabel, setIsSwitchingLabel] = useState(false);
-  const [copied, setCopied] = useState(false);
+  
 
   // Artist info state
   const [artistImage, setArtistImage] = useState<string | null>(null);
