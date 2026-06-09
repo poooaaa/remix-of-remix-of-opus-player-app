@@ -192,8 +192,6 @@ Deno.serve(async (req) => {
 
     return json({
       previewUrl: signed,
-      title: apiInfo.title,
-      thumbnail: apiInfo.imagePreviewUrl || "",
       resolution,
     });
   } catch (error) {
