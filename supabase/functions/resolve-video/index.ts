@@ -136,7 +136,7 @@ Deno.serve(async (req) => {
     //    Rule: <=30MB keeps 720p, otherwise re-download at 480p.
     const SIZE_LIMIT_BYTES = SIZE_LIMIT_MB * 1024 * 1024;
     let resolution = "720p";
-    let bytes = await fetchQuality(normalizedUrl, "720p");
+    let bytes = await fetchQuality(normalizedUrl, "720");
     if (!bytes) {
       return json(
         { error: "Gagal mengunduh video. Pastikan URL YouTube valid." },
@@ -144,7 +144,7 @@ Deno.serve(async (req) => {
       );
     }
     if (bytes.byteLength > SIZE_LIMIT_BYTES) {
-      const smaller = await fetchQuality(normalizedUrl, "480p");
+      const smaller = await fetchQuality(normalizedUrl, "360");
       if (smaller) {
         bytes = smaller;
         resolution = "480p";
