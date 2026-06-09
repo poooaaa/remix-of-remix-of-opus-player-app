@@ -145,71 +145,26 @@ Deno.serve(async (req) => {
       if (signed) return json({ previewUrl: signed, cached: true });
     }
 
-    // 2. Fetch video info from ytdown
-    const raw = await ytdown(normalizedUrl);
-    if (!raw?.api || raw.api.status !== "ok") {
+    // 2. Download via y2mp3.co — start at 720p.
+    //    Rule: <=30MB keeps 720p, otherwise re-download at 480p.
+    const SIZE_LIMIT_BYTES = SIZE_LIMIT_MB * 1024 * 1024;
+    let resolution = "720p";
+    let bytes = await fetchQuality(normalizedUrl, "720p");
+    if (!bytes) {
       return json(
-        { error: "Gagal mengambil detail video. Pastikan URL YouTube valid." },
-        400,
-      );
-    }
-    const apiInfo = raw.api;
-
-    const durationStr = apiInfo.mediaStats?.duration || "";
-    if (parseDurationToSeconds(durationStr) > 600) {
-      return json(
-        { error: "Durasi video melebihi batas 10 menit." },
-        400,
-      );
-    }
-
-    const videos = (apiInfo.mediaItems || []).filter(
-      (i: any) => i.type === "Video",
-    );
-    if (videos.length === 0) {
-      return json({ error: "Tidak ditemukan format video yang bisa diunduh." }, 400);
-    }
-
-    // 3. Resolution selection: below 30MB -> max 720p, above 30MB -> max 480p
-    const processed = videos
-      .map((v: any) => ({
-        item: v,
-        height: getResolutionHeight(v),
-        sizeMB: parseSizeToMB(v.mediaFileSize),
-      }))
-      .filter((v: any) => v.height > 0);
-
-    const eligible = processed.filter((v: any) =>
-      v.sizeMB > SIZE_LIMIT_MB ? v.height <= 480 : v.height <= 720,
-    );
-    const pool = eligible.length > 0 ? eligible : processed;
-    // Prefer highest allowed quality
-    pool.sort((a: any, b: any) => b.height - a.height);
-    const selected = pool[0];
-    const resolution = `${selected.height}p`;
-
-    // 4. Resolve real file URL + download bytes
-    const realUrl = await resolveRealVideoUrl(selected.item.mediaUrl);
-    const fileRes = await fetch(realUrl, {
-      headers: {
-        "User-Agent": UA,
-        Referer: "https://app.ytdown.to/",
-        Origin: "https://app.ytdown.to",
-      },
-    });
-    const ct = fileRes.headers.get("content-type") || "";
-    if (ct.includes("text/html") || ct.includes("application/json")) {
-      return json(
-        { error: "Tautan video kedaluwarsa atau diblokir. Silakan coba lagi." },
+        { error: "Gagal mengunduh video. Pastikan URL YouTube valid." },
         502,
       );
     }
-    const bytes = new Uint8Array(await fileRes.arrayBuffer());
-    if (bytes.byteLength < 1000) {
-      return json({ error: "Hasil unduhan rusak/terlalu kecil. Coba lagi." }, 502);
+    if (bytes.byteLength > SIZE_LIMIT_BYTES) {
+      const smaller = await fetchQuality(normalizedUrl, "480p");
+      if (smaller) {
+        bytes = smaller;
+        resolution = "480p";
+      }
     }
 
-    // 5. Upload to storage bucket
+    // 3. Upload to storage bucket
     const videoId =
       normalizedUrl.match(/(?:v=|youtu\.be\/|shorts\/)([\w-]{11})/)?.[1] ||
       Math.random().toString(36).slice(2, 13);
