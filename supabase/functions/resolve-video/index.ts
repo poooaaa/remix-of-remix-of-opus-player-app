@@ -9,7 +9,7 @@ const corsHeaders = {
 
 const BUCKET = "yt-videos";
 const MAX_CACHED = 3; // keep only the newest 3 videos
-const SIZE_LIMIT_MB = 30; // below 30MB -> max 720p, above 30MB -> max 480p
+const SIZE_LIMIT_MB = 30; // <=30MB -> 720p allowed, otherwise fall back to 480p
 const SIGN_EXPIRY = 60 * 60 * 24 * 7; // 7 days
 
 const json = (body: unknown, status = 200) =>
@@ -18,114 +18,84 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
-const UA =
-  "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Mobile Safari/537.36";
-
 const admin = () =>
   createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
-function parseDurationToSeconds(duration: unknown): number {
-  if (duration === null || duration === undefined) return 0;
-  if (typeof duration === "number") return duration;
-  const str = String(duration).trim();
-  if (!str) return 0;
-  if (/^\d+$/.test(str)) return parseInt(str, 10);
-  if (/^(\d+:)?\d+:\d+$/.test(str)) {
-    const parts = str.split(":").map((p) => parseInt(p, 10));
-    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-    if (parts.length === 2) return parts[0] * 60 + parts[1];
-  }
-  return 0;
-}
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-function getResolutionHeight(item: any): number {
-  if (item.mediaRes && typeof item.mediaRes === "string") {
-    const parts = item.mediaRes.split("x");
-    if (parts.length === 2) {
-      const h = parseInt(parts[1], 10);
-      if (!isNaN(h)) return h;
+// Normalize a YouTube URL to the canonical watch?v= form
+function normalizeUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    if (u.hostname === "youtu.be") {
+      return "https://www.youtube.com/watch?v=" + u.pathname.slice(1);
     }
+    const v = u.searchParams.get("v");
+    if (v) return "https://www.youtube.com/watch?v=" + v;
+    const shorts = u.pathname.match(/\/shorts\/([\w-]{11})/);
+    if (shorts) return "https://www.youtube.com/watch?v=" + shorts[1];
+    return url;
+  } catch {
+    return url;
   }
-  if (item.mediaUrl && typeof item.mediaUrl === "string") {
-    const match = item.mediaUrl.match(/\/(\d+)p$/);
-    if (match) return parseInt(match[1], 10);
-  }
-  return 0;
 }
 
-function parseSizeToMB(sizeStr: string): number {
-  if (!sizeStr) return 0;
-  const str = sizeStr.trim().toLowerCase();
-  const numMatch = str.match(/^([\d.]+)/);
-  if (!numMatch) return 0;
-  const value = parseFloat(numMatch[1]);
-  if (isNaN(value)) return 0;
-  if (str.includes("gb")) return value * 1024;
-  if (str.includes("kb")) return value / 1024;
-  return value;
-}
+// ---- y2mp3.co downloader integration ----
 
-// YouTube downloader integration (ytdown.to)
-async function ytdown(url: string): Promise<any> {
-  const body = new URLSearchParams({ url }).toString();
-  const res = await fetch("https://app.ytdown.to/proxy.php", {
+async function startDownload(
+  url: string,
+  quality: string,
+): Promise<string | null> {
+  const res = await fetch("https://ytdl.y2mp3.co/api/v2/download", {
     method: "POST",
     headers: {
-      "User-Agent": UA,
-      "x-requested-with": "XMLHttpRequest",
-      "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-      origin: "https://app.ytdown.to",
-      referer: "https://app.ytdown.to/id23/",
+      Accept: "application/json",
+      "Content-Type": "application/json",
     },
-    body,
+    body: JSON.stringify({
+      url: normalizeUrl(url),
+      output: { type: "video", format: "mp4", quality },
+    }),
   });
-  const text = await res.text();
-  if (text.trim().startsWith("<")) {
-    // Cloudflare bot-challenge / HTML page instead of JSON
-    throw new Error(
-      "Penyedia unduhan (ytdown.to) memblokir permintaan dari server (proteksi Cloudflare). Coba lagi nanti.",
-    );
-  }
-  try {
-    return JSON.parse(text);
-  } catch {
-    throw new Error("Respon penyedia unduhan tidak valid.");
-  }
+  const data = await res.json().catch(() => null);
+  return data?.statusUrl || null;
 }
 
-// Resolve the real downloadable file URL from the ytdown proxy media URL
-async function resolveRealVideoUrl(mediaUrl: string): Promise<string> {
-  for (let attempt = 0; attempt < 30; attempt++) {
-    const response = await fetch(mediaUrl, {
-      headers: {
-        "User-Agent": UA,
-        Referer: "https://app.ytdown.to/",
-        Origin: "https://app.ytdown.to",
-      },
+async function pollStatus(statusUrl: string): Promise<string> {
+  const id = statusUrl.split("/").pop();
+  for (let attempts = 0; attempts < 30; attempts++) {
+    const res = await fetch(`https://ytdl.y2mp3.co/api/status/${id}`, {
+      headers: { Accept: "application/json" },
     });
-    const contentType = response.headers.get("content-type") || "";
-    if (!contentType.includes("application/json")) {
-      // Direct binary stream — return the URL as-is
-      return mediaUrl;
+    const result = await res.json().catch(() => ({}));
+    if (result.status === "completed" && result.downloadUrl) {
+      return result.downloadUrl;
     }
-    const data = await response.json();
-    if (
-      data.status === "completed" ||
-      data.percent === "Completed" ||
-      data.progress === "Completed"
-    ) {
-      if (data.fileUrl) return data.fileUrl;
-      if (data.viewUrl) return data.viewUrl;
+    if (result.status === "failed") {
+      throw new Error("Server konversi video melaporkan kegagalan.");
     }
-    if (data.status === "error" || data.status === "fail") {
-      throw new Error(data.message || "Server konversi video melaporkan kesalahan.");
-    }
-    await new Promise((r) => setTimeout(r, 2000));
+    await sleep(3000);
   }
   throw new Error("Waktu tunggu konversi lewat batas (Timeout). Silakan coba lagi.");
+}
+
+// Download a given quality and return the bytes
+async function fetchQuality(
+  url: string,
+  quality: string,
+): Promise<Uint8Array | null> {
+  const statusUrl = await startDownload(url, quality);
+  if (!statusUrl) return null;
+  const downloadUrl = await pollStatus(statusUrl);
+  const fileRes = await fetch(downloadUrl);
+  const ct = fileRes.headers.get("content-type") || "";
+  if (ct.includes("text/html") || ct.includes("application/json")) return null;
+  const bytes = new Uint8Array(await fileRes.arrayBuffer());
+  if (bytes.byteLength < 1000) return null;
+  return bytes;
 }
 
 // Keep only the newest MAX_CACHED videos: delete the oldest from storage + table
