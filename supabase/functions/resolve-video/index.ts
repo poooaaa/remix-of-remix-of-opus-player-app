@@ -45,7 +45,23 @@ function normalizeUrl(url: string): string {
 
 // ---- Savenest downloader integration ----
 
-async function resolveDownloadUrl(url: string): Promise<string | null> {
+function isYouTube(url: string) {
+  return /(?:youtube\.com|youtu\.be)/i.test(url);
+}
+
+async function resolveYouTubeUrl(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://apis.davidcyriltech.my.id/download/ytmp4?url=${encodeURIComponent(url)}`,
+    );
+    const data = await res.json().catch(() => null);
+    return data?.result?.download_url || null;
+  } catch {
+    return null;
+  }
+}
+
+async function resolveSavenestUrl(url: string): Promise<string | null> {
   try {
     const res = await fetch("https://www.savenest.web.id/api/savenest-dl", {
       method: "POST",
@@ -63,13 +79,16 @@ async function resolveDownloadUrl(url: string): Promise<string | null> {
 }
 
 async function fetchVideo(url: string): Promise<Uint8Array | null> {
-  const downloadUrl = await resolveDownloadUrl(url);
+  const downloadUrl = isYouTube(url)
+    ? await resolveYouTubeUrl(normalizeUrl(url))
+    : await resolveSavenestUrl(url);
   if (!downloadUrl) return null;
   const fileRes = await fetch(downloadUrl, { redirect: "follow" });
-  const ct = fileRes.headers.get("content-type") || "";
-  if (ct.includes("text/html")) return null;
   const bytes = new Uint8Array(await fileRes.arrayBuffer());
   if (bytes.byteLength < 1000) return null;
+  // Reject HTML pages (some proxies return an HTML watch page instead of the file)
+  const head = new TextDecoder().decode(bytes.slice(0, 64)).toLowerCase();
+  if (head.startsWith("<!doctype") || head.startsWith("<html")) return null;
   return bytes;
 }
 
