@@ -10,6 +10,7 @@ import PopularArtists from "@/components/PopularArtists";
 import FloatingMenu from "@/components/FloatingMenu";
 import LoginSheet from "@/components/LoginSheet";
 import CookieSheet from "@/components/CookieSheet";
+import GroqKeySheet from "@/components/GroqKeySheet";
 import { supabase as supabaseTyped } from "@/integrations/supabase/client";
 // Types haven't been regenerated for new tables yet; cast to any to bypass strict typing.
 const supabase = supabaseTyped as any;
@@ -87,6 +88,7 @@ const Index = () => {
   const [user, setUser] = useState<any>(null);
   const [showLogin, setShowLogin] = useState(false);
   const [showCookieSheet, setShowCookieSheet] = useState(false);
+  const [showGroqSheet, setShowGroqSheet] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
 
   // Theme - always dark
@@ -214,6 +216,12 @@ const Index = () => {
 
     if (rawQuery.toLowerCase() === "#cookie") {
       setShowCookieSheet(true);
+      setQuery("");
+      return;
+    }
+
+    if (rawQuery.toLowerCase() === "#groq") {
+      setShowGroqSheet(true);
       setQuery("");
       return;
     }
@@ -916,6 +924,7 @@ const Index = () => {
         )}
 
         <CookieSheet open={showCookieSheet} onClose={() => setShowCookieSheet(false)} />
+        <GroqKeySheet open={showGroqSheet} onClose={() => setShowGroqSheet(false)} />
 
 
       </div>
