@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { getGroqKey } from "../_shared/groq-key.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,8 +8,6 @@ const corsHeaders = {
 };
 
 const MONTH_NAMES = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-const GROQ_KEY = Deno.env.get("GROQ_API_KEY") || "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";
-
 async function fetchWithTimeout(url: string, opts: RequestInit = {}, timeoutMs = 15000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -71,7 +70,8 @@ async function fetchLyrics(title: string, artist: string): Promise<string | null
 
 async function summarizeMeaning(lyrics: string, title: string, artist: string): Promise<string> {
   const fallback = "dinamika kehidupan modern dan perasaan personal yang disampaikan secara puitis oleh sang penyanyi ke dalam liriknya";
-  
+  const GROQ_KEY = await getGroqKey();
+
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const res = await fetchWithTimeout("https://api.groq.com/openai/v1/chat/completions", {
