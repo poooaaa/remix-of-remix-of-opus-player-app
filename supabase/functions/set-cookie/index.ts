@@ -17,14 +17,15 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { action, value } = await req.json();
+    const { action, value, key } = await req.json();
+    const configKey = typeof key === "string" && key.length > 0 ? key : "ais_cookie";
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
     if (action === "clear") {
-      await admin.from("app_config").delete().eq("key", "ais_cookie");
+      await admin.from("app_config").delete().eq("key", configKey);
       return json({ ok: true });
     }
 
@@ -39,7 +40,7 @@ Deno.serve(async (req) => {
       // Replace old: upsert with new value + updated_at
       const { error } = await admin
         .from("app_config")
-        .upsert({ key: "ais_cookie", value: trimmed, updated_at: new Date().toISOString() });
+        .upsert({ key: configKey, value: trimmed, updated_at: new Date().toISOString() });
       if (error) return json({ error: error.message }, 500);
       return json({ ok: true });
     }
@@ -48,7 +49,7 @@ Deno.serve(async (req) => {
       const { data } = await admin
         .from("app_config")
         .select("updated_at, value")
-        .eq("key", "ais_cookie")
+        .eq("key", configKey)
         .maybeSingle();
       return json({
         exists: !!data,

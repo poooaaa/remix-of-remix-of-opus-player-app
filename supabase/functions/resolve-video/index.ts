@@ -43,43 +43,31 @@ function normalizeUrl(url: string): string {
   }
 }
 
-// ---- davidcyriltech downloader integration (server-friendly, no Cloudflare block) ----
+// ---- Savenest downloader integration ----
 
-// Resolve a direct download URL for the given quality ("720" or "360").
-async function resolveDownloadUrl(
-  url: string,
-  quality: string,
-): Promise<string | null> {
-  const target = normalizeUrl(url);
-  const endpoints = [
-    `https://apis.davidcyriltech.my.id/download/ytmp4?url=${encodeURIComponent(target)}&quality=${quality}`,
-    `https://apis.davidcyriltech.my.id/youtube/mp4?url=${encodeURIComponent(target)}`,
-  ];
-  for (const ep of endpoints) {
-    try {
-      const res = await fetch(ep, { headers: { Accept: "application/json" } });
-      const ct = res.headers.get("content-type") || "";
-      if (!ct.includes("application/json")) continue;
-      const data = await res.json().catch(() => null);
-      const dl = data?.result?.download_url || data?.result?.url;
-      if (dl && typeof dl === "string") return dl;
-    } catch {
-      // try next endpoint
-    }
+async function resolveDownloadUrl(url: string): Promise<string | null> {
+  try {
+    const res = await fetch("https://www.savenest.web.id/api/savenest-dl", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ url: normalizeUrl(url) }),
+    });
+    const data = await res.json().catch(() => null);
+    if (!data?.status) return null;
+    const medias: any[] = data?.result?.medias || [];
+    const video = medias.find((m) => m?.type === "video" && m?.url) || medias[0];
+    return video?.url || null;
+  } catch {
+    return null;
   }
-  return null;
 }
 
-// Download a given quality and return the bytes
-async function fetchQuality(
-  url: string,
-  quality: string,
-): Promise<Uint8Array | null> {
-  const downloadUrl = await resolveDownloadUrl(url, quality);
+async function fetchVideo(url: string): Promise<Uint8Array | null> {
+  const downloadUrl = await resolveDownloadUrl(url);
   if (!downloadUrl) return null;
   const fileRes = await fetch(downloadUrl, { redirect: "follow" });
   const ct = fileRes.headers.get("content-type") || "";
-  if (ct.includes("text/html") || ct.includes("application/json")) return null;
+  if (ct.includes("text/html")) return null;
   const bytes = new Uint8Array(await fileRes.arrayBuffer());
   if (bytes.byteLength < 1000) return null;
   return bytes;
@@ -132,24 +120,16 @@ Deno.serve(async (req) => {
       if (signed) return json({ previewUrl: signed, cached: true });
     }
 
-    // 2. Download via y2mp3.co — start at 720p.
-    //    Rule: <=30MB keeps 720p, otherwise re-download at 480p.
-    const SIZE_LIMIT_BYTES = SIZE_LIMIT_MB * 1024 * 1024;
-    let resolution = "720p";
-    let bytes = await fetchQuality(normalizedUrl, "720");
+    // 2. Download via Savenest
+    const bytes = await fetchVideo(normalizedUrl);
     if (!bytes) {
       return json(
         { error: "Gagal mengunduh video. Pastikan URL YouTube valid." },
         502,
       );
     }
-    if (bytes.byteLength > SIZE_LIMIT_BYTES) {
-      const smaller = await fetchQuality(normalizedUrl, "360");
-      if (smaller) {
-        bytes = smaller;
-        resolution = "480p";
-      }
-    }
+    const SIZE_LIMIT_BYTES = SIZE_LIMIT_MB * 1024 * 1024;
+    const resolution = bytes.byteLength > SIZE_LIMIT_BYTES ? "480p" : "720p";
 
     // 3. Upload to storage bucket
     const videoId =
