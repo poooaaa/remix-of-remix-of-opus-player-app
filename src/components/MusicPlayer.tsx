@@ -6,15 +6,19 @@ interface MusicPlayerProps {
   track: Track;
   isPlaying: boolean;
   isLoading?: boolean;
+  variant?: "audio" | "video";
+  subtitle?: string;
+  title?: string;
   onTogglePlay: () => void;
   onClose: () => void;
 }
 
-const MusicPlayer = ({ track, isPlaying, isLoading, onTogglePlay, onClose }: MusicPlayerProps) => {
-  const displayTitle = track.title.includes(" - ")
+const MusicPlayer = ({ track, isPlaying, isLoading, variant = "audio", subtitle, title, onTogglePlay, onClose }: MusicPlayerProps) => {
+  const displayTitle = title ?? (track.title.includes(" - ")
     ? track.title.split(" - ").slice(1).join(" - ")
-    : track.title;
-  const artistName = track.artist || "Unknown";
+    : track.title);
+  const artistName = subtitle ?? (track.artist || "Unknown");
+  const isVideo = variant === "video";
 
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
@@ -60,7 +64,7 @@ const MusicPlayer = ({ track, isPlaying, isLoading, onTogglePlay, onClose }: Mus
       onPointerCancel={onPointerUp}
     >
       <div className="flex items-center gap-3 bg-card/95 backdrop-blur-xl border border-border rounded-2xl p-2 pr-2 shadow-2xl">
-        <div className="w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden bg-secondary">
+        <div className={`${isVideo ? "w-[72px] h-12" : "w-12 h-12"} flex-shrink-0 rounded-lg overflow-hidden bg-secondary`}>
           <img
             src={track.thumbnail}
             alt={displayTitle}
