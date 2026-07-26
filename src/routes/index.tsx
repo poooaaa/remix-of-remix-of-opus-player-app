@@ -469,13 +469,6 @@ const Index = () => {
       return;
     }
 
-    // Pause any playing YouTube preview cards (don't destroy them)
-    if (activeYTVideo) {
-      try { ytPlayerRef.current?.unload?.(); } catch {}
-      setActiveYTVideo(null);
-      setYtIsPlaying(false);
-    }
-
     audio.pause();
     audio.unload();
     setPlayingTrackUrl(null);
@@ -530,7 +523,7 @@ const Index = () => {
         setLoadingTrackUrl(null);
       }
     }
-  }, [playingTrackUrl, user, totalPlays, findYouTubeVideoId, activeYTVideo]);
+  }, [playingTrackUrl, user, totalPlays, findYouTubeVideoId]);
 
   // Play saved track with auto-play queue — use current savedTracks order
   const handlePlaySavedTrack = useCallback((track: Track) => {
@@ -848,7 +841,7 @@ const Index = () => {
           />
         )}
 
-        {(currentTrack || activeYTVideo) && <div className="h-20" aria-hidden />}
+        {currentTrack && <div className="h-20" aria-hidden />}
 
         <LyricsSheet 
           lyrics={lyrics} 
