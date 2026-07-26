@@ -17,7 +17,6 @@ const supabase = supabaseTyped as any;
 import SpinnerLogo from "@/components/SpinnerLogo";
 import MusicPlayer from "@/components/MusicPlayer";
 import YouTubeAudio, { type YTAudioHandle } from "@/components/YouTubeAudio";
-import type { YTVideoHandle } from "@/components/YouTubeCard";
 const profileAvatarGif = "https://i.pinimg.com/originals/ea/d8/26/ead8269afcd3834e662993b95f6ca93a.gif";
 import { preloadImages } from "@/lib/imagePreloader";
 
@@ -108,9 +107,6 @@ const Index = () => {
   // Auto-play queue for saved tracks
   const [autoPlayQueue, setAutoPlayQueue] = useState<Track[]>([]);
   const [autoPlayIndex, setAutoPlayIndex] = useState<number>(-1);
-  const [activeYTVideo, setActiveYTVideo] = useState<YouTubeVideo | null>(null);
-  const [ytIsPlaying, setYtIsPlaying] = useState(false);
-  const ytPlayerRef = useRef<YTVideoHandle | null>(null);
 
   const hasProfileGoogleRing = useMemo(() => {
     if (!user) return false;
@@ -473,13 +469,6 @@ const Index = () => {
       return;
     }
 
-    // Pause any playing YouTube preview cards (don't destroy them)
-    if (activeYTVideo) {
-      try { ytPlayerRef.current?.unload?.(); } catch {}
-      setActiveYTVideo(null);
-      setYtIsPlaying(false);
-    }
-
     audio.pause();
     audio.unload();
     setPlayingTrackUrl(null);
@@ -534,7 +523,7 @@ const Index = () => {
         setLoadingTrackUrl(null);
       }
     }
-  }, [playingTrackUrl, user, totalPlays, findYouTubeVideoId, activeYTVideo]);
+  }, [playingTrackUrl, user, totalPlays, findYouTubeVideoId]);
 
   // Play saved track with auto-play queue — use current savedTracks order
   const handlePlaySavedTrack = useCallback((track: Track) => {
@@ -757,23 +746,7 @@ const Index = () => {
                    {youtubeVideos.map((video) => (
                      <YouTubeCard
                        key={video.id}
-                       ref={activeYTVideo?.id === video.id ? ytPlayerRef : undefined}
                        video={video}
-                       isActive={activeYTVideo?.id === video.id}
-                       onEnded={() => { setYtIsPlaying(false); setActiveYTVideo(null); }}
-                       onSelect={() => {
-                         const audio = audioRef.current;
-                         if (audio) { audio.pause(); audio.unload(); }
-                         playbackRequestIdRef.current += 1;
-                         setLoadingTrackUrl(null);
-                         setPlayingTrackUrl(null);
-                         setRemainingTime(null);
-                         setCurrentTrack(null);
-                         setAutoPlayQueue([]);
-                         setAutoPlayIndex(-1);
-                         setActiveYTVideo(video);
-                         setYtIsPlaying(true);
-                       }}
                      />
                   ))}
                 </div>
@@ -833,7 +806,7 @@ const Index = () => {
 
         <YouTubeAudio ref={audioRef} onEnded={handleAudioEnded} onTimeUpdate={handleAudioTimeUpdate} />
 
-        {currentTrack && !activeYTVideo && (
+        {currentTrack && (
           <MusicPlayer
             track={currentTrack}
             isPlaying={!!playingTrackUrl && playingTrackUrl === currentTrack.track_url}
@@ -868,39 +841,7 @@ const Index = () => {
           />
         )}
 
-        {activeYTVideo && (
-          <MusicPlayer
-            track={{
-              title: activeYTVideo.title,
-              thumbnail: activeYTVideo.thumbnail,
-              duration: activeYTVideo.duration,
-              duration_ms: 0,
-              track_url: activeYTVideo.url,
-              artist: activeYTVideo.channel,
-              source: "spotify",
-            } as Track}
-            variant="video"
-            title={activeYTVideo.title}
-            subtitle={activeYTVideo.channel}
-            isPlaying={ytIsPlaying}
-            onTogglePlay={() => {
-              if (ytIsPlaying) {
-                ytPlayerRef.current?.pause();
-                setYtIsPlaying(false);
-              } else {
-                ytPlayerRef.current?.play();
-                setYtIsPlaying(true);
-              }
-            }}
-            onClose={() => {
-              try { ytPlayerRef.current?.unload?.(); } catch {}
-              setActiveYTVideo(null);
-              setYtIsPlaying(false);
-            }}
-          />
-        )}
-
-        {(currentTrack || activeYTVideo) && <div className="h-20" aria-hidden />}
+        {currentTrack && <div className="h-20" aria-hidden />}
 
         <LyricsSheet 
           lyrics={lyrics} 
