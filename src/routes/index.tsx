@@ -27,6 +27,16 @@ const POPULAR_ARTISTS = [
 const GOOGLE_RING_DURATION_MS = 5 * 60 * 60 * 1000;
 const GOOGLE_RING_PLAY_THRESHOLD = 5;
 
+const parseYouTubeDurationSeconds = (value: unknown) => {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (/^\d+$/.test(trimmed)) return Number(trimmed);
+  const parts = trimmed.split(":").map((part) => Number(part));
+  if (parts.some((part) => !Number.isFinite(part))) return null;
+  return parts.reduce((total, part) => total * 60 + part, 0);
+};
+
 const proxyFetch = async (url: string) => {
   const { data, error } = await supabase.functions.invoke("proxy", { body: { url } });
   if (error) throw new Error("Proxy request failed");
@@ -306,24 +316,24 @@ const Index = () => {
       if (combined.length > 0) {
         setTracks(combined);
         preloadImages(combined.map(s => s.thumbnail));
-        // Search YouTube - use original search term + "official" for better matching
+        // Search YouTube with the same working search function used by the music player.
         const ytArtist = bestSpotify?.artist || bestApple?.artist || "";
-      const ytTitle = bestSpotify 
+        const ytTitle = bestSpotify 
           ? bestSpotify.title.replace(/^.+\s-\s/, "") 
           : bestApple 
             ? bestApple.title.replace(/^.+\s-\s/, "")
             : rawQuery;
         const ytQuery = `lagu ${ytTitle} by ${ytArtist} official music video`.trim();
-        supabase.functions.invoke("youtube-proxy", {
-          body: { action: "search", query: ytQuery },
+        supabase.functions.invoke("youtube-search", {
+          body: { query: ytQuery },
         }).then(({ data }: any) => {
-          const results = data?.results || data?.data || data?.result || [];
+          const results = data?.items || data?.results || data?.data || data?.result || [];
           // Score results by title similarity
           const searchLower = `${ytArtist} ${ytTitle}`.toLowerCase();
           const scored = results
             .filter((v: any) => {
-              const dur = typeof v.duration === "number" ? v.duration : 0;
-              return dur > 0 && dur <= 600;
+              const dur = parseYouTubeDurationSeconds(v.duration_seconds ?? v.duration ?? v.timestamp ?? v.lengthSeconds);
+              return dur !== null && dur > 0 && dur <= 600;
             })
             .map((v: any) => {
               const vTitle = (v.title || "").toLowerCase();
@@ -340,9 +350,9 @@ const Index = () => {
               id: v.videoId || v.id || "",
               title: v.title || "",
               thumbnail: v.thumbnail || v.image || "",
-              duration: v.timestamp || "",
+              duration: v.timestamp || v.duration || v.duration_seconds || "",
               channel: v.author?.name || v.channel || v.artist || "",
-              url: v.url || (v.videoId ? `https://youtube.com/watch?v=${v.videoId}` : ""),
+              url: v.url || `https://youtube.com/watch?v=${v.videoId || v.id}`,
             }]);
           }
         }).catch(() => {});
@@ -370,16 +380,7 @@ const Index = () => {
 
   const extractYouTubeDurationSeconds = useCallback((item: any) => {
     const raw = item?.duration ?? item?.duration_seconds ?? item?.lengthSeconds ?? item?.length_seconds ?? item?.seconds;
-    if (typeof raw === "number" && Number.isFinite(raw)) return raw;
-    if (typeof raw === "string") {
-      const trimmed = raw.trim();
-      if (/^\d+$/.test(trimmed)) return Number(trimmed);
-      const parts = trimmed.split(":").map((part) => Number(part));
-      if (parts.every((part) => Number.isFinite(part))) {
-        return parts.reduce((total, part) => total * 60 + part, 0);
-      }
-    }
-    return null;
+    return parseYouTubeDurationSeconds(raw);
   }, []);
 
   // Search YouTube via youtube-search-api (server-side) for the best matching video ID
@@ -741,7 +742,7 @@ const Index = () => {
         {searched && !loading && tracks.length > 0 && (
             <>
               {/* YouTube Video */}
-              {youtubeVideos.length > 0 && user && (
+              {youtubeVideos.length > 0 && (
                 <div className="mb-4 pb-4 border-b border-border/20">
                    {youtubeVideos.map((video) => (
                      <YouTubeCard
@@ -929,6 +930,8 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Search and stream millions of songs from Spotify, Apple Music, and YouTube." },
       { property: "og:title", content: "Opus Music — Stream & Discover" },
       { property: "og:description", content: "Search and stream millions of songs from Spotify, Apple Music, and YouTube." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Index,
