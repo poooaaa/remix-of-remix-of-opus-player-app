@@ -709,15 +709,6 @@ const Index = () => {
               </div>
             )}
 
-            <div className="flex items-center justify-center gap-2 text-[11px] font-medium mt-8 mb-4">
-              <span className="text-zinc-400">Designed By</span>
-              <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 rounded-full px-2 py-1 shadow-sm">
-                <div className="w-3 h-3 rounded-full bg-zinc-800 overflow-hidden flex items-center justify-center">
-                  <img src="https://i.pinimg.com/736x/a8/25/08/a82508de4070c12e52daf7298d18418f.jpg" alt="@FloFa avatar" width={12} height={12} loading="lazy" className="w-full h-full object-cover" />
-                </div>
-                <span className="text-zinc-300 font-sans">@FloFa</span>
-              </div>
-            </div>
           </>
         )}
 
@@ -893,17 +884,6 @@ const Index = () => {
           />
         )}
 
-        {authChecked && (
-          <LoginSheet
-            isVisible={showLogin}
-            onClose={() => setShowLogin(false)}
-            onFakeLogin={() => {
-              const randomId = Math.random().toString(36).substring(2, 10);
-              const fakeUser = { id: randomId, name: `User_${randomId.slice(0, 4)}`, avatar_url: profileAvatarGif };
-              setUser(fakeUser);
-            }}
-          />
-        )}
 
         <CookieSheet open={showCookieSheet} onClose={() => setShowCookieSheet(false)} />
         <GroqKeySheet open={showGroqSheet} onClose={() => setShowGroqSheet(false)} />
