@@ -8,7 +8,6 @@ import AILabsSheet from "@/components/AILabsSheet";
 import SavedTracks from "@/components/SavedTracks";
 import PopularArtists from "@/components/PopularArtists";
 import FloatingMenu from "@/components/FloatingMenu";
-import LoginSheet from "@/components/LoginSheet";
 import CookieSheet from "@/components/CookieSheet";
 import GroqKeySheet from "@/components/GroqKeySheet";
 import { supabase as supabaseTyped } from "@/integrations/supabase/client";
@@ -96,7 +95,6 @@ const Index = () => {
 
   // Auth state
   const [user, setUser] = useState<any>(null);
-  const [showLogin, setShowLogin] = useState(false);
   const [showCookieSheet, setShowCookieSheet] = useState(false);
   const [showGroqSheet, setShowGroqSheet] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
@@ -134,7 +132,8 @@ const Index = () => {
 
   useEffect(() => {
     localStorage.removeItem("fake_user");
-    setShowLogin(true);
+    const randomId = Math.random().toString(36).substring(2, 10);
+    setUser({ id: randomId, name: `User_${randomId.slice(0, 4)}`, avatar_url: profileAvatarGif });
     setAuthChecked(true);
   }, []);
 
@@ -676,13 +675,8 @@ const Index = () => {
           onSearch={handleSearch}
           userAvatar={userAvatar}
           userName={userName}
-          onProfileClick={() => { if (!user) setShowLogin(true); }}
-          onLongPressProfile={() => {
-            if (user) {
-              setUser(null);
-              setShowLogin(true);
-            }
-          }}
+          onProfileClick={() => {}}
+          onLongPressProfile={() => {}}
           hasGoogleRing={hasProfileGoogleRing}
         />
 
