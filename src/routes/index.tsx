@@ -8,7 +8,6 @@ import AILabsSheet from "@/components/AILabsSheet";
 import SavedTracks from "@/components/SavedTracks";
 import PopularArtists from "@/components/PopularArtists";
 import FloatingMenu from "@/components/FloatingMenu";
-import LoginSheet from "@/components/LoginSheet";
 import CookieSheet from "@/components/CookieSheet";
 import GroqKeySheet from "@/components/GroqKeySheet";
 import { supabase as supabaseTyped } from "@/integrations/supabase/client";
@@ -96,10 +95,8 @@ const Index = () => {
 
   // Auth state
   const [user, setUser] = useState<any>(null);
-  const [showLogin, setShowLogin] = useState(false);
   const [showCookieSheet, setShowCookieSheet] = useState(false);
   const [showGroqSheet, setShowGroqSheet] = useState(false);
-  const [authChecked, setAuthChecked] = useState(false);
 
   // Theme - always dark
   const theme = "dark";
@@ -134,8 +131,8 @@ const Index = () => {
 
   useEffect(() => {
     localStorage.removeItem("fake_user");
-    setShowLogin(true);
-    setAuthChecked(true);
+    const randomId = Math.random().toString(36).substring(2, 10);
+    setUser({ id: randomId, name: `User_${randomId.slice(0, 4)}`, avatar_url: profileAvatarGif });
   }, []);
 
   useEffect(() => {
@@ -676,13 +673,8 @@ const Index = () => {
           onSearch={handleSearch}
           userAvatar={userAvatar}
           userName={userName}
-          onProfileClick={() => { if (!user) setShowLogin(true); }}
-          onLongPressProfile={() => {
-            if (user) {
-              setUser(null);
-              setShowLogin(true);
-            }
-          }}
+          onProfileClick={() => {}}
+          onLongPressProfile={() => {}}
           hasGoogleRing={hasProfileGoogleRing}
         />
 
@@ -715,15 +707,6 @@ const Index = () => {
               </div>
             )}
 
-            <div className="flex items-center justify-center gap-2 text-[11px] font-medium mt-8 mb-4">
-              <span className="text-zinc-400">Designed By</span>
-              <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 rounded-full px-2 py-1 shadow-sm">
-                <div className="w-3 h-3 rounded-full bg-zinc-800 overflow-hidden flex items-center justify-center">
-                  <img src="https://i.pinimg.com/736x/a8/25/08/a82508de4070c12e52daf7298d18418f.jpg" alt="@FloFa avatar" width={12} height={12} loading="lazy" className="w-full h-full object-cover" />
-                </div>
-                <span className="text-zinc-300 font-sans">@FloFa</span>
-              </div>
-            </div>
           </>
         )}
 
@@ -899,17 +882,6 @@ const Index = () => {
           />
         )}
 
-        {authChecked && (
-          <LoginSheet
-            isVisible={showLogin}
-            onClose={() => setShowLogin(false)}
-            onFakeLogin={() => {
-              const randomId = Math.random().toString(36).substring(2, 10);
-              const fakeUser = { id: randomId, name: `User_${randomId.slice(0, 4)}`, avatar_url: profileAvatarGif };
-              setUser(fakeUser);
-            }}
-          />
-        )}
 
         <CookieSheet open={showCookieSheet} onClose={() => setShowCookieSheet(false)} />
         <GroqKeySheet open={showGroqSheet} onClose={() => setShowGroqSheet(false)} />

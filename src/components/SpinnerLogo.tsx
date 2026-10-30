@@ -1,4 +1,6 @@
-const GEMINI_URL = "https://www.cloudsky.biz.id/api/file/material-you-loading-1.jpg";
+import loadingAsset from "@/assets/loading.png.asset.json";
+
+const GEMINI_URL = loadingAsset.url;
 
 // Preload the loading image once so it doesn't re-fetch every time the spinner mounts
 if (typeof window !== "undefined") {

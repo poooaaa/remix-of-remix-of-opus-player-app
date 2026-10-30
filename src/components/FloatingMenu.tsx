@@ -71,7 +71,7 @@ const FloatingMenu = ({ position, onClose, onSave, onLike, onDislike, onLyrics, 
   return createPortal(
     <div
       ref={menuRef}
-      className="fixed z-50 bg-background/95 backdrop-blur-xl border border-border rounded-2xl shadow-2xl py-2 min-w-[160px] animate-scale-in origin-top-left"
+      className="fixed z-50 bg-background/95 backdrop-blur-xl border border-border rounded-lg shadow-2xl py-2 min-w-[160px] animate-scale-in origin-top-left"
       style={{ left: adjustedX, top: adjustedY }}
     >
       <MenuItem
