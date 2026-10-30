@@ -97,7 +97,6 @@ const Index = () => {
   const [user, setUser] = useState<any>(null);
   const [showCookieSheet, setShowCookieSheet] = useState(false);
   const [showGroqSheet, setShowGroqSheet] = useState(false);
-  const [authChecked, setAuthChecked] = useState(false);
 
   // Theme - always dark
   const theme = "dark";
