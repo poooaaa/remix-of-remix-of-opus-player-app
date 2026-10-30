@@ -133,7 +133,6 @@ const Index = () => {
     localStorage.removeItem("fake_user");
     const randomId = Math.random().toString(36).substring(2, 10);
     setUser({ id: randomId, name: `User_${randomId.slice(0, 4)}`, avatar_url: profileAvatarGif });
-    setAuthChecked(true);
   }, []);
 
   useEffect(() => {
