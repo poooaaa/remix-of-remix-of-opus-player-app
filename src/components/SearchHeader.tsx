@@ -1,4 +1,5 @@
 import { Search } from "lucide-react";
+import { useRef, useState } from "react";
 import SearchSuggestions from "@/components/SearchSuggestions";
 
 interface SearchHeaderProps {
