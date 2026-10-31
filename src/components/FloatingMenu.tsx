@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Bookmark, ThumbsUp, ThumbsDown, Music, Loader2 } from "lucide-react";
-const AI_LABS_ICON_URL = "https://i.pinimg.com/originals/e9/22/03/e9220344e070c715420e81baf4e81784.gif";
+import { Music, Loader2 } from "lucide-react";
+const AI_LABS_ICON_URL = "https://copilot-node-integration.ai.studio/assets/ai-avatar-CMYs2D4Q.png";
 
 interface FloatingMenuProps {
   position: { x: number; y: number };
@@ -19,12 +19,13 @@ interface FloatingMenuProps {
   showAILabs?: boolean;
 }
 
-const ActionIcon = ({ Icon, active }: { Icon: typeof Bookmark; active: boolean }) => (
-  <Icon
-    size={16}
-    fill={active ? "currentColor" : "none"}
-    strokeWidth={2}
-  />
+const MaterialIcon = ({ name, active }: { name: string; active: boolean }) => (
+  <span
+    className="material-symbols-outlined select-none"
+    style={{ fontSize: 18, fontVariationSettings: `'FILL' ${active ? 1 : 0}, 'wght' 400, 'GRAD' 0, 'opsz' 24` }}
+  >
+    {name}
+  </span>
 );
 
 const MenuItem = ({ icon, label, onClick, disabled, bigIcon }: { icon: React.ReactNode; label: string; onClick: () => void; disabled?: boolean; bigIcon?: boolean }) => (
@@ -75,19 +76,19 @@ const FloatingMenu = ({ position, onClose, onSave, onLike, onDislike, onLyrics, 
       style={{ left: adjustedX, top: adjustedY }}
     >
       <MenuItem
-        icon={<ActionIcon Icon={Bookmark} active={isSaved} />}
+        icon={<MaterialIcon name="thumb_up" active={isSaved} />}
         label={isSaved ? "Tersimpan" : "Simpan"}
         onClick={onSave}
         disabled={isBusy}
       />
       <MenuItem
-        icon={<ActionIcon Icon={ThumbsUp} active={isLiked} />}
+        icon={<MaterialIcon name="thumb_up" active={isLiked} />}
         label={isLiked ? "Liked" : "Like"}
         onClick={onLike}
         disabled={isBusy}
       />
       <MenuItem
-        icon={<ActionIcon Icon={ThumbsDown} active={isDisliked} />}
+        icon={<MaterialIcon name="thumb_down" active={isDisliked} />}
         label={isDisliked ? "Disliked" : "Dislike"}
         onClick={onDislike}
         disabled={isBusy}
@@ -100,7 +101,7 @@ const FloatingMenu = ({ position, onClose, onSave, onLike, onDislike, onLyrics, 
               ? <Loader2 size={16} className="animate-spin text-foreground" />
               : <img src={AI_LABS_ICON_URL} alt="AI" className="w-full h-full rounded-full object-cover" />
             }
-            label={isLoadingAILabs ? "Memuat AI..." : "Labs AI"}
+            label={isLoadingAILabs ? "Memuat AI..." : "Opus Fable"}
             onClick={onAILabs}
             disabled={isBusy}
             bigIcon={!isLoadingAILabs}
