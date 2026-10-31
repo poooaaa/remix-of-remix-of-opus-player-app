@@ -16,7 +16,6 @@ const supabase = supabaseTyped as any;
 import SpinnerLogo from "@/components/SpinnerLogo";
 import MusicPlayer from "@/components/MusicPlayer";
 import YouTubeAudio, { type YTAudioHandle } from "@/components/YouTubeAudio";
-const profileAvatarGif = "https://i.pinimg.com/originals/ea/d8/26/ead8269afcd3834e662993b95f6ca93a.gif";
 import { preloadImages } from "@/lib/imagePreloader";
 
 const POPULAR_ARTISTS = [
@@ -132,7 +131,7 @@ const Index = () => {
   useEffect(() => {
     localStorage.removeItem("fake_user");
     const randomId = Math.random().toString(36).substring(2, 10);
-    setUser({ id: randomId, name: `User_${randomId.slice(0, 4)}`, avatar_url: profileAvatarGif });
+    setUser({ id: randomId, name: `User_${randomId.slice(0, 4)}`, avatar_url: "" });
   }, []);
 
   useEffect(() => {
@@ -671,11 +670,7 @@ const Index = () => {
           query={query}
           onQueryChange={setQuery}
           onSearch={handleSearch}
-          userAvatar={userAvatar}
-          userName={userName}
-          onProfileClick={() => {}}
-          onLongPressProfile={() => {}}
-          hasGoogleRing={hasProfileGoogleRing}
+          onHomeClick={() => { setQuery(""); handleSearch(); }}
         />
 
         {!searched && (
