@@ -32,6 +32,7 @@ const SearchHeader = ({ query, onQueryChange, onSearch, onHomeClick }: SearchHea
           visible={focused}
           onPick={(q) => {
             onQueryChange(q);
+            setFocused(false);
             onSearch(q);
           }}
         />
