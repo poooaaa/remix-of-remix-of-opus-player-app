@@ -114,10 +114,6 @@ const Index = () => {
   const [autoPlayQueue, setAutoPlayQueue] = useState<Track[]>([]);
   const [autoPlayIndex, setAutoPlayIndex] = useState<number>(-1);
 
-  const hasProfileGoogleRing = useMemo(() => {
-    if (!user) return false;
-    return googleRingExpiry > Date.now();
-  }, [user, googleRingExpiry]);
 
   const closeAllMenus = useCallback(() => {
     setMenuState(null);
@@ -635,8 +631,6 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [googleRingExpiry]);
 
-  const userAvatar = user?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
-  const userName = user?.name || user?.user_metadata?.full_name || user?.user_metadata?.name || null;
 
   const isTrackPlaying = useCallback((track: Track) => {
     if (!playingTrackUrl || !currentTrack) return false;
