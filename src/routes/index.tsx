@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import SearchHeader from "@/components/SearchHeader";
 import TrackCard, { type Track, parseDurationToMs, formatTime } from "@/components/TrackCard";
 import TrackRowCard from "@/components/TrackRowCard";
@@ -16,7 +16,6 @@ const supabase = supabaseTyped as any;
 import SpinnerLogo from "@/components/SpinnerLogo";
 import MusicPlayer from "@/components/MusicPlayer";
 import YouTubeAudio, { type YTAudioHandle } from "@/components/YouTubeAudio";
-const profileAvatarGif = "https://i.pinimg.com/originals/ea/d8/26/ead8269afcd3834e662993b95f6ca93a.gif";
 import { preloadImages } from "@/lib/imagePreloader";
 
 const POPULAR_ARTISTS = [
@@ -115,10 +114,6 @@ const Index = () => {
   const [autoPlayQueue, setAutoPlayQueue] = useState<Track[]>([]);
   const [autoPlayIndex, setAutoPlayIndex] = useState<number>(-1);
 
-  const hasProfileGoogleRing = useMemo(() => {
-    if (!user) return false;
-    return googleRingExpiry > Date.now();
-  }, [user, googleRingExpiry]);
 
   const closeAllMenus = useCallback(() => {
     setMenuState(null);
@@ -132,7 +127,7 @@ const Index = () => {
   useEffect(() => {
     localStorage.removeItem("fake_user");
     const randomId = Math.random().toString(36).substring(2, 10);
-    setUser({ id: randomId, name: `User_${randomId.slice(0, 4)}`, avatar_url: profileAvatarGif });
+    setUser({ id: randomId, name: `User_${randomId.slice(0, 4)}`, avatar_url: "" });
   }, []);
 
   useEffect(() => {
@@ -636,8 +631,6 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [googleRingExpiry]);
 
-  const userAvatar = user?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
-  const userName = user?.name || user?.user_metadata?.full_name || user?.user_metadata?.name || null;
 
   const isTrackPlaying = useCallback((track: Track) => {
     if (!playingTrackUrl || !currentTrack) return false;
@@ -671,11 +664,7 @@ const Index = () => {
           query={query}
           onQueryChange={setQuery}
           onSearch={handleSearch}
-          userAvatar={userAvatar}
-          userName={userName}
-          onProfileClick={() => {}}
-          onLongPressProfile={() => {}}
-          hasGoogleRing={hasProfileGoogleRing}
+          onHomeClick={() => { setQuery(""); handleSearch(); }}
         />
 
         {!searched && (
