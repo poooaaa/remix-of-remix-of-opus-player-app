@@ -10,6 +10,7 @@ interface SearchHeaderProps {
 }
 
 const SearchHeader = ({ query, onQueryChange, onSearch, onHomeClick }: SearchHeaderProps) => {
+  const [focused, setFocused] = useState(false);
   return (
     <div className="sticky top-0 z-20 pb-6 pt-1 bg-background flex items-center justify-between gap-3">
       <div className="relative flex items-center flex-grow">
@@ -20,7 +21,9 @@ const SearchHeader = ({ query, onQueryChange, onSearch, onHomeClick }: SearchHea
           type="text"
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") onSearch(); }}
+          onKeyDown={(e) => { if (e.key === "Enter") { setFocused(false); onSearch(); } }}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setTimeout(() => setFocused(false), 120)}
           placeholder="Cari lagu kesukaanmu..."
           className="w-full py-2.5 pl-11 pr-4 bg-secondary/50 backdrop-blur-xl border border-border rounded-full outline-none placeholder-muted-foreground text-xs text-foreground transition-colors"
         />
