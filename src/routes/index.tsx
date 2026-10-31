@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import SearchHeader from "@/components/SearchHeader";
 import TrackCard, { type Track, parseDurationToMs, formatTime } from "@/components/TrackCard";
 import TrackRowCard from "@/components/TrackRowCard";
