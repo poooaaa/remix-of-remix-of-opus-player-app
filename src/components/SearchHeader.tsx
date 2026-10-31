@@ -1,4 +1,5 @@
-import { Home } from "lucide-react";
+import { Search } from "lucide-react";
+import SearchSuggestions from "@/components/SearchSuggestions";
 
 interface SearchHeaderProps {
   query: string;
@@ -12,10 +13,7 @@ const SearchHeader = ({ query, onQueryChange, onSearch, onHomeClick }: SearchHea
     <div className="sticky top-0 z-20 pb-6 pt-1 bg-background flex items-center justify-between gap-3">
       <div className="relative flex items-center flex-grow">
         <div className="absolute left-4 z-10 flex items-center justify-center">
-          <svg className="w-4 h-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.3-4.3" />
-          </svg>
+          <Search className="w-4 h-4 text-muted-foreground" />
         </div>
         <input
           type="text"
@@ -24,6 +22,14 @@ const SearchHeader = ({ query, onQueryChange, onSearch, onHomeClick }: SearchHea
           onKeyDown={(e) => { if (e.key === "Enter") onSearch(); }}
           placeholder="Cari lagu kesukaanmu..."
           className="w-full py-2.5 pl-11 pr-4 bg-secondary/50 backdrop-blur-xl border border-border rounded-full outline-none placeholder-muted-foreground text-xs text-foreground transition-colors"
+        />
+        <SearchSuggestions
+          query={query}
+          visible={focused}
+          onPick={(q) => {
+            onQueryChange(q);
+            onSearch(q);
+          }}
         />
       </div>
 
