@@ -664,7 +664,7 @@ const Index = () => {
           query={query}
           onQueryChange={setQuery}
           onSearch={handleSearch}
-          onHomeClick={() => { setQuery(""); handleSearch(); }}
+          onHomeClick={() => { setQuery(""); handleSearch(""); }}
         />
 
         {!searched && (

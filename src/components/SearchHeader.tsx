@@ -1,6 +1,7 @@
-import { Search, Home } from "lucide-react";
+import { Search } from "lucide-react";
 import { useRef, useState } from "react";
 import SearchSuggestions from "@/components/SearchSuggestions";
+import homeIcon from "@/assets/home-menu.jpg.asset.json";
 
 interface SearchHeaderProps {
   query: string;
@@ -41,9 +42,9 @@ const SearchHeader = ({ query, onQueryChange, onSearch, onHomeClick }: SearchHea
       <button
         onClick={onHomeClick}
         aria-label="Kembali ke menu home"
-        className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full border border-border bg-secondary/50 text-foreground transition-colors active:bg-muted"
+        className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-border transition-opacity active:opacity-80"
       >
-        <Home size={18} />
+        <img src={homeIcon.url} alt="" className="h-full w-full object-cover" />
       </button>
     </div>
   );
