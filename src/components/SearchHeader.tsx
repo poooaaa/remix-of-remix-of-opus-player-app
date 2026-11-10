@@ -2,6 +2,7 @@ import { Search } from "lucide-react";
 import { useRef, useState } from "react";
 import SearchSuggestions from "@/components/SearchSuggestions";
 import homeIcon from "@/assets/home-menu.jpg.asset.json";
+import profileAvatar from "@/assets/vercel-profile-avatar.svg.asset.json";
 
 interface SearchHeaderProps {
   query: string;
@@ -39,13 +40,20 @@ const SearchHeader = ({ query, onQueryChange, onSearch, onHomeClick }: SearchHea
         />
       </div>
 
-      <button
-        onClick={onHomeClick}
-        aria-label="Kembali ke menu home"
-        className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-border transition-opacity active:opacity-80"
-      >
-        <img src={homeIcon.url} alt="" className="h-full w-full object-cover" />
-      </button>
+      <div className="flex flex-shrink-0 items-center gap-2">
+        <img
+          src={profileAvatar.url}
+          alt="Foto profil"
+          className="h-10 w-10 rounded-full border border-border object-cover"
+        />
+        <button
+          onClick={onHomeClick}
+          aria-label="Kembali ke menu home"
+          className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-border transition-opacity active:opacity-80"
+        >
+          <img src={homeIcon.url} alt="" className="h-full w-full object-cover" />
+        </button>
+      </div>
     </div>
   );
 };

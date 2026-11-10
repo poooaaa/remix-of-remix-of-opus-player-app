@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import SearchHeader from "@/components/SearchHeader";
 import TrackCard, { type Track, parseDurationToMs, formatTime } from "@/components/TrackCard";
 import TrackRowCard from "@/components/TrackRowCard";
@@ -17,6 +17,7 @@ import SpinnerLogo from "@/components/SpinnerLogo";
 import MusicPlayer from "@/components/MusicPlayer";
 import YouTubeAudio, { type YTAudioHandle } from "@/components/YouTubeAudio";
 import { preloadImages } from "@/lib/imagePreloader";
+import { selectRandomArtists } from "@/lib/select-random-artists";
 
 const POPULAR_ARTISTS = [
   "virgoun", "yovie widianto", "nadhif basalamah", "tulus", "nadin amizah", "hindia",
@@ -75,6 +76,7 @@ const Index = () => {
   const [savedTracks, setSavedTracks] = useState<Track[]>([]);
   const [popularSongs, setPopularSongs] = useState<Track[]>([]);
   const [searchSections, setSearchSections] = useState<{ visualB: Track[]; untukAnda: Track[]; lainnya: Track[] }>({ visualB: [], untukAnda: [], lainnya: [] });
+  const otherArtists = useMemo(() => selectRandomArtists(searchSections.lainnya), [searchSections.lainnya]);
 
   // AI Labs state
   const [showAILabs, setShowAILabs] = useState(false);
@@ -762,16 +764,17 @@ const Index = () => {
               {searchSections.lainnya.length > 0 && (
                 <div className="mb-6">
                   <h2 className="text-lg font-bold text-foreground mb-4">Lagu Lainnya</h2>
-                  {searchSections.lainnya.map((track, i) => (
-                    <TrackRowCard
-                      key={track.track_url + "ln" + i}
-                      track={track}
-                      isPlaying={isTrackPlaying(track)}
-                      isLoading={isTrackLoading(track)}
-                      onPlay={() => handlePlayTrack(track)}
-                      onLongPress={(pos) => handleLongPress(track, pos)}
-                    />
-                  ))}
+                  <div className="flex gap-4 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
+                    {otherArtists.map((artist) => (
+                      <div key={artist.name.toLocaleLowerCase()} className="w-20 flex-shrink-0 text-center">
+                        <div className="aspect-square w-full overflow-hidden rounded-full border border-border bg-secondary">
+                          <img src={artist.image} alt={artist.name} className="h-full w-full object-cover" />
+                        </div>
+                        <p className="mt-2 truncate text-[11px] font-semibold text-foreground/90">{artist.name}</p>
+                        <p className="mt-0.5 text-[10px] text-muted-foreground">Artist</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </>

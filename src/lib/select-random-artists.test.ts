@@ -1,4 +1,5 @@
-import { describe, expect, test } from "bun:test";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 import { selectRandomArtists } from "./select-random-artists";
 
 const tracks = Array.from({ length: 7 }, (_, index) => ({
@@ -8,16 +9,26 @@ const tracks = Array.from({ length: 7 }, (_, index) => ({
 }));
 
 describe("selectRandomArtists", () => {
-  test("selects at least two distinct artists when at least two are available", () => {
+  it("selects at least two distinct artists when at least two are available", () => {
     const artists = selectRandomArtists(tracks, () => 0);
 
-    expect(artists.length).toBe(2);
-    expect(new Set(artists.map(({ name }) => name)).size).toBe(2);
+    assert.equal(artists.length, 2);
+    assert.equal(new Set(artists.map(({ name }) => name)).size, 2);
   });
 
-  test("never selects more than five artists", () => {
+  it("never selects more than five artists", () => {
     const artists = selectRandomArtists(tracks, () => 0.999);
 
-    expect(artists.length).toBe(5);
+    assert.equal(artists.length, 5);
+  });
+
+  it("deduplicates artist names without regard to letter case", () => {
+    const artists = selectRandomArtists([
+      { artist: "Tulus", title: "Song 1", thumbnail: "cover-1.jpg" },
+      { artist: "tULUS", title: "Song 2", thumbnail: "cover-2.jpg" },
+      { artist: "Bernadya", title: "Song 3", thumbnail: "cover-3.jpg" },
+    ], () => 0);
+
+    assert.deepEqual(artists.map(({ name }) => name).sort(), ["Bernadya", "Tulus"]);
   });
 });

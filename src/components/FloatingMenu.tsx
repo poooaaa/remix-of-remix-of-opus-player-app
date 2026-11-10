@@ -21,7 +21,7 @@ interface FloatingMenuProps {
 
 const MaterialIcon = ({ name, active }: { name: string; active: boolean }) => (
   <span
-    className="material-symbols-outlined inline-flex h-[18px] w-[18px] shrink-0 transform-none items-center justify-center text-[18px] leading-none select-none"
+    className="material-symbols-outlined inline-flex h-[18px] w-[18px] shrink-0 transform-none items-center justify-center text-[17px] leading-none select-none"
     style={{ fontVariationSettings: `'FILL' ${active ? 1 : 0}, 'wght' 400, 'GRAD' 0, 'opsz' 24` }}
   >
     {name}
@@ -76,7 +76,7 @@ const FloatingMenu = ({ position, onClose, onSave, onLike, onDislike, onLyrics, 
       style={{ left: adjustedX, top: adjustedY }}
     >
       <MenuItem
-        icon={<Bookmark size={16} fill={isSaved ? "currentColor" : "none"} strokeWidth={2} />}
+        icon={<Bookmark size={17} fill={isSaved ? "currentColor" : "none"} strokeWidth={2} />}
         label={isSaved ? "Tersimpan" : "Simpan"}
         onClick={onSave}
         disabled={isBusy}
@@ -98,7 +98,7 @@ const FloatingMenu = ({ position, onClose, onSave, onLike, onDislike, onLyrics, 
           <div className="my-1 mx-3 border-t border-border" />
           <MenuItem
             icon={isLoadingAILabs
-              ? <Loader2 size={16} className="animate-spin text-foreground" />
+              ? <Loader2 size={17} className="animate-spin text-foreground" />
               : <img src={opusFableIcon.url} alt="Opus Fable" className="h-full w-full rounded-full object-cover" />
             }
             label={isLoadingAILabs ? "Memuat AI..." : "Opus Fable"}
@@ -110,7 +110,7 @@ const FloatingMenu = ({ position, onClose, onSave, onLike, onDislike, onLyrics, 
       )}
       <div className="my-1 mx-3 border-t border-border" />
       <MenuItem
-        icon={isLoadingLyrics ? <Loader2 size={16} className="animate-spin text-foreground" /> : <Music size={16} />}
+        icon={isLoadingLyrics ? <Loader2 size={17} className="animate-spin text-foreground" /> : <Music size={17} />}
         label={isLoadingLyrics ? "Memuat lirik..." : "Lyrics"}
         onClick={onLyrics}
         disabled={isBusy}
