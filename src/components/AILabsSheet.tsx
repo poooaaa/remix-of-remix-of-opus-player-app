@@ -267,7 +267,7 @@ const AILabsSheet = ({ isVisible, onClose, summary, artistImage, artistName, art
 
               <div className="mt-8 mb-4 pt-4 border-t border-border/30 flex items-start justify-between">
                 <div>
-                  <p className="text-[10px] text-muted-foreground/60 font-medium">Powered by Opus Fable</p>
+                  <p className="text-[10px] text-muted-foreground/60 font-medium">Powered by Labs AI</p>
                   <p className="text-[9px] text-muted-foreground/40 mt-1">Informasi mungkin tidak 100% akurat</p>
                 </div>
                 {summary && (

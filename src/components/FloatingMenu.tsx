@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Bookmark, Music, Loader2 } from "lucide-react";
-import opusFableIcon from "@/assets/opus-fable-icon.png.asset.json";
+import { Bookmark, ThumbsUp, ThumbsDown, Music, Loader2 } from "lucide-react";
+const AI_LABS_ICON_URL = "https://i.pinimg.com/originals/e9/22/03/e9220344e070c715420e81baf4e81784.gif";
 
 interface FloatingMenuProps {
   position: { x: number; y: number };
@@ -19,25 +19,24 @@ interface FloatingMenuProps {
   showAILabs?: boolean;
 }
 
-const MaterialIcon = ({ name, active }: { name: string; active: boolean }) => (
-  <span
-    className="material-symbols-outlined inline-flex h-[18px] w-[18px] shrink-0 transform-none items-center justify-center text-[17px] leading-none select-none"
-    style={{ fontVariationSettings: `'FILL' ${active ? 1 : 0}, 'wght' 400, 'GRAD' 0, 'opsz' 24` }}
-  >
-    {name}
-  </span>
+const ActionIcon = ({ Icon, active }: { Icon: typeof Bookmark; active: boolean }) => (
+  <Icon
+    size={16}
+    fill={active ? "currentColor" : "none"}
+    strokeWidth={2}
+  />
 );
 
 const MenuItem = ({ icon, label, onClick, disabled, bigIcon }: { icon: React.ReactNode; label: string; onClick: () => void; disabled?: boolean; bigIcon?: boolean }) => (
   <button
-    className="w-full flex items-center gap-3 px-4 py-2.5 text-[11px] font-medium text-foreground opacity-80 disabled:opacity-50 transform-none transition-none active:scale-100"
+    className="w-full flex items-center gap-3 px-4 py-2.5 text-[11px] font-medium text-foreground opacity-80 disabled:opacity-50"
     onClick={onClick}
     disabled={disabled}
     style={{ WebkitTapHighlightColor: "transparent" }}
   >
-    <span className="relative flex h-4 w-4 shrink-0 items-center justify-center">
+    <span className="w-4 h-4 flex items-center justify-center shrink-0 relative">
       {bigIcon ? (
-        <span className="absolute left-1/2 top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2">{icon}</span>
+        <span className="absolute inset-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10">{icon}</span>
       ) : icon}
     </span>
     {label}
@@ -76,19 +75,19 @@ const FloatingMenu = ({ position, onClose, onSave, onLike, onDislike, onLyrics, 
       style={{ left: adjustedX, top: adjustedY }}
     >
       <MenuItem
-        icon={<Bookmark size={17} fill={isSaved ? "currentColor" : "none"} strokeWidth={2} />}
+        icon={<ActionIcon Icon={Bookmark} active={isSaved} />}
         label={isSaved ? "Tersimpan" : "Simpan"}
         onClick={onSave}
         disabled={isBusy}
       />
       <MenuItem
-        icon={<MaterialIcon name="thumb_up" active={isLiked} />}
+        icon={<ActionIcon Icon={ThumbsUp} active={isLiked} />}
         label={isLiked ? "Liked" : "Like"}
         onClick={onLike}
         disabled={isBusy}
       />
       <MenuItem
-        icon={<MaterialIcon name="thumb_down" active={isDisliked} />}
+        icon={<ActionIcon Icon={ThumbsDown} active={isDisliked} />}
         label={isDisliked ? "Disliked" : "Dislike"}
         onClick={onDislike}
         disabled={isBusy}
@@ -98,10 +97,10 @@ const FloatingMenu = ({ position, onClose, onSave, onLike, onDislike, onLyrics, 
           <div className="my-1 mx-3 border-t border-border" />
           <MenuItem
             icon={isLoadingAILabs
-              ? <Loader2 size={17} className="animate-spin text-foreground" />
-              : <img src={opusFableIcon.url} alt="Opus Fable" className="h-full w-full rounded-full object-cover" />
+              ? <Loader2 size={16} className="animate-spin text-foreground" />
+              : <img src={AI_LABS_ICON_URL} alt="AI" className="w-full h-full rounded-full object-cover" />
             }
-            label={isLoadingAILabs ? "Memuat AI..." : "Opus Fable"}
+            label={isLoadingAILabs ? "Memuat AI..." : "Labs AI"}
             onClick={onAILabs}
             disabled={isBusy}
             bigIcon={!isLoadingAILabs}
@@ -110,7 +109,7 @@ const FloatingMenu = ({ position, onClose, onSave, onLike, onDislike, onLyrics, 
       )}
       <div className="my-1 mx-3 border-t border-border" />
       <MenuItem
-        icon={isLoadingLyrics ? <Loader2 size={17} className="animate-spin text-foreground" /> : <Music size={17} />}
+        icon={isLoadingLyrics ? <Loader2 size={16} className="animate-spin text-foreground" /> : <Music size={16} />}
         label={isLoadingLyrics ? "Memuat lirik..." : "Lyrics"}
         onClick={onLyrics}
         disabled={isBusy}

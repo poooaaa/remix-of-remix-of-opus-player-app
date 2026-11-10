@@ -16,8 +16,8 @@ const supabase = supabaseTyped as any;
 import SpinnerLogo from "@/components/SpinnerLogo";
 import MusicPlayer from "@/components/MusicPlayer";
 import YouTubeAudio, { type YTAudioHandle } from "@/components/YouTubeAudio";
+const profileAvatarGif = "https://i.pinimg.com/originals/ea/d8/26/ead8269afcd3834e662993b95f6ca93a.gif";
 import { preloadImages } from "@/lib/imagePreloader";
-import { selectRandomArtists } from "@/lib/select-random-artists";
 
 const POPULAR_ARTISTS = [
   "virgoun", "yovie widianto", "nadhif basalamah", "tulus", "nadin amizah", "hindia",
@@ -76,7 +76,6 @@ const Index = () => {
   const [savedTracks, setSavedTracks] = useState<Track[]>([]);
   const [popularSongs, setPopularSongs] = useState<Track[]>([]);
   const [searchSections, setSearchSections] = useState<{ visualB: Track[]; untukAnda: Track[]; lainnya: Track[] }>({ visualB: [], untukAnda: [], lainnya: [] });
-  const otherArtists = useMemo(() => selectRandomArtists(searchSections.lainnya), [searchSections.lainnya]);
 
   // AI Labs state
   const [showAILabs, setShowAILabs] = useState(false);
@@ -116,6 +115,10 @@ const Index = () => {
   const [autoPlayQueue, setAutoPlayQueue] = useState<Track[]>([]);
   const [autoPlayIndex, setAutoPlayIndex] = useState<number>(-1);
 
+  const hasProfileGoogleRing = useMemo(() => {
+    if (!user) return false;
+    return googleRingExpiry > Date.now();
+  }, [user, googleRingExpiry]);
 
   const closeAllMenus = useCallback(() => {
     setMenuState(null);
@@ -129,7 +132,7 @@ const Index = () => {
   useEffect(() => {
     localStorage.removeItem("fake_user");
     const randomId = Math.random().toString(36).substring(2, 10);
-    setUser({ id: randomId, name: `User_${randomId.slice(0, 4)}`, avatar_url: "" });
+    setUser({ id: randomId, name: `User_${randomId.slice(0, 4)}`, avatar_url: profileAvatarGif });
   }, []);
 
   useEffect(() => {
@@ -633,6 +636,8 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [googleRingExpiry]);
 
+  const userAvatar = user?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
+  const userName = user?.name || user?.user_metadata?.full_name || user?.user_metadata?.name || null;
 
   const isTrackPlaying = useCallback((track: Track) => {
     if (!playingTrackUrl || !currentTrack) return false;
@@ -666,7 +671,11 @@ const Index = () => {
           query={query}
           onQueryChange={setQuery}
           onSearch={handleSearch}
-          onHomeClick={() => { setQuery(""); handleSearch(""); }}
+          userAvatar={userAvatar}
+          userName={userName}
+          onProfileClick={() => {}}
+          onLongPressProfile={() => {}}
+          hasGoogleRing={hasProfileGoogleRing}
         />
 
         {!searched && (
@@ -764,17 +773,16 @@ const Index = () => {
               {searchSections.lainnya.length > 0 && (
                 <div className="mb-6">
                   <h2 className="text-lg font-bold text-foreground mb-4">Lagu Lainnya</h2>
-                  <div className="flex gap-4 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
-                    {otherArtists.map((artist) => (
-                      <div key={artist.name.toLocaleLowerCase()} className="w-20 flex-shrink-0 text-center">
-                        <div className="aspect-square w-full overflow-hidden rounded-full border border-border bg-secondary">
-                          <img src={artist.image} alt={artist.name} className="h-full w-full object-cover" />
-                        </div>
-                        <p className="mt-2 truncate text-[11px] font-semibold text-foreground/90">{artist.name}</p>
-                        <p className="mt-0.5 text-[10px] text-muted-foreground">Artist</p>
-                      </div>
-                    ))}
-                  </div>
+                  {searchSections.lainnya.map((track, i) => (
+                    <TrackRowCard
+                      key={track.track_url + "ln" + i}
+                      track={track}
+                      isPlaying={isTrackPlaying(track)}
+                      isLoading={isTrackLoading(track)}
+                      onPlay={() => handlePlayTrack(track)}
+                      onLongPress={(pos) => handleLongPress(track, pos)}
+                    />
+                  ))}
                 </div>
               )}
             </>

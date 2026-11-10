@@ -1,1 +1,0 @@
-Keep the “Lagu Lainnya” artist selection in a pure, tested helper so its random count and uniqueness rules remain verifiable.
